@@ -1,95 +1,71 @@
-import { BillingType } from "@prisma/client";
-import AppError from "../utils/AppError.js";
-import prisma from "../lib/prisma.js";
+import AppError from "@/utils/AppError.js";
+import prisma from "@/lib/prisma.js";
+import { generateStudentCode } from "@/utils/studentCodegenerator.js";
+import type {
+  CreateStudentDto,
+  UpdateStudentDto,
+} from "@/types/students.types.js";
+import {
+  toStudentByIdWhere,
+  toStudentCreateData,
+  toStudentDeleteWhere,
+  toStudentDuplicateWhere,
+  toStudentListOrderBy,
+  toStudentListWhere,
+  toStudentUpdateData,
+} from "@/mappers/student.mapper.js";
 
-interface CreateStudentInput {
-  name: string;
-  parentName: string;
-  phone: string;
-  address: string;
-  subject: string;
-  billingType: BillingType;
-  hourlyRate: number;
-}
-
-interface UpdateStudentInput {
-  name?: string;
-  parentName?: string | null;
-  phone?: string;
-  address?: string;
-  subject?: string;
-  billingType?: BillingType;
-  hourlyRate?: number | null;
-  isActive?: boolean;
-}
-
-const create = async (userId: string, data: CreateStudentInput) => {
-  if (data.billingType === BillingType.HOURLY && data.hourlyRate == null) {
-    throw new AppError("Hourly rate is required for hourly billing.", 400);
+const create = async (userId: string, data: CreateStudentDto) => {
+  if (data.rate <= 0) {
+    throw new AppError("Rate must be greater than zero.", 400);
   }
 
-  const student = await prisma.student.create({
-    data: {
-      name: data.name,
-      parentName: data.parentName,
-      phone: data.phone,
-      address: data.address,
-      subject: data.subject,
-      billingType: data.billingType,
-      hourlyRate:
-        data.billingType === BillingType.HOURLY ? data.hourlyRate : null,
-      userId,
-    },
+  const existing = await prisma.student.findFirst({
+    where: toStudentDuplicateWhere(userId, data),
   });
 
-  return student;
-};
-
-const getAll = async (userId: string) => {
-  const students = await prisma.student.findMany({
-    where: {
-      userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return students;
-};
-
-const getById = async (userId: string, studentId: string) => {
-  const student = await prisma.student.findFirst({
-    where: {
-      id: studentId,
-      userId,
-    },
-  });
-
-  if (!student) {
-    throw new AppError("Student not found.", 404);
+  if (existing) {
+    throw new AppError("A student with similar details already exists.", 409);
   }
 
-  return student;
+  const studentCode = await generateStudentCode();
+
+  return prisma.student.create({
+    data: toStudentCreateData(userId, studentCode, data),
+  });
 };
 
 const update = async (
   userId: string,
   studentId: string,
-  data: UpdateStudentInput,
+  dto: UpdateStudentDto,
 ) => {
   await getById(userId, studentId);
 
-  if (data.billingType === BillingType.HOURLY && data.hourlyRate == null) {
-    throw new AppError("Hourly rate is required for hourly billing.", 400);
+  if (dto.rate !== undefined && dto.rate <= 0) {
+    throw new AppError("Rate must be greater than zero.", 400);
   }
 
-  const student = await prisma.student.update({
-    where: {
-      id: studentId,
-    },
-    data,
+  return prisma.student.update({
+    where: toStudentDeleteWhere(studentId),
+    data: toStudentUpdateData(dto),
   });
+};
+
+const getAll = async (userId: string) => {
+  return prisma.student.findMany({
+    where: toStudentListWhere(userId),
+    orderBy: toStudentListOrderBy,
+  });
+};
+
+const getById = async (userId: string, studentId: string) => {
+  const student = await prisma.student.findFirst({
+    where: toStudentByIdWhere(userId, studentId),
+  });
+  if (!student) {
+    throw new AppError("Student not found.", 404);
+  }
 
   return student;
 };
@@ -98,9 +74,7 @@ const remove = async (userId: string, studentId: string) => {
   await getById(userId, studentId);
 
   await prisma.student.delete({
-    where: {
-      id: studentId,
-    },
+    where: toStudentDeleteWhere(studentId),
   });
 };
 

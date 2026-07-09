@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import sessionService from "../services/session.service.js";
-import AppError from "../utils/AppError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import sessionService from "@/services/session.service.js";
+import AppError from "@/utils/AppError.js";
+import { asyncHandler } from "@/utils/asyncHandler.js";
 
 const create = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;

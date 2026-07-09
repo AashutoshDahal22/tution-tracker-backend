@@ -1,25 +1,15 @@
-import { SessionStatus } from "@prisma/client";
-import prisma from "../lib/prisma.js";
-import AppError from "../utils/AppError.js";
+import prisma from "@/lib/prisma.js";
+import AppError from "@/utils/AppError.js";
+import {
+  toSessionCreateData,
+  toSessionUpdateData,
+} from "@/mappers/session.mappers.js";
+import type {
+  CreateSessionDto,
+  UpdateSessionDto,
+} from "@/types/session.types.js";
 
-interface CreateSessionInput {
-  studentId: string;
-  startTime: Date;
-  endTime: Date;
-  duration: number;
-  notes: string;
-  status: SessionStatus;
-}
-
-interface UpdateSessionInput {
-  startTime?: Date;
-  endTime?: Date;
-  duration?: number;
-  notes?: string;
-  status?: SessionStatus;
-}
-
-const create = async (userId: string, data: CreateSessionInput) => {
+const create = async (userId: string, data: CreateSessionDto) => {
   const student = await prisma.student.findFirst({
     where: {
       id: data.studentId,
@@ -32,14 +22,7 @@ const create = async (userId: string, data: CreateSessionInput) => {
   }
 
   const session = await prisma.session.create({
-    data: {
-      studentId: data.studentId,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      duration: data.duration,
-      notes: data.notes,
-      status: data.status ?? SessionStatus.ONGOING,
-    },
+    data: toSessionCreateData(userId, data),
     include: {
       student: true,
     },
@@ -89,7 +72,7 @@ const getById = async (userId: string, sessionId: string) => {
 const update = async (
   userId: string,
   sessionId: string,
-  data: UpdateSessionInput,
+  data: UpdateSessionDto,
 ) => {
   await getById(userId, sessionId);
 
@@ -97,7 +80,7 @@ const update = async (
     where: {
       id: sessionId,
     },
-    data,
+    data: toSessionUpdateData(data),
     include: {
       student: true,
     },

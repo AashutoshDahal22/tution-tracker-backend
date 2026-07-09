@@ -4,6 +4,11 @@
     // File Layout
     // "rootDir": "./src",
     // "outDir": "./dist",
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"]
+    },
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -39,6 +44,6 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }

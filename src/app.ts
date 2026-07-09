@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
-import authRouter from "./routes/auth.route.js";
-import studentRouter from "./routes/student.route.js";
-import sessionRouter from "./routes/session.route.js";
+import authRouter from "@/routes/auth.route.js";
+import studentRouter from "@/routes/student.route.js";
+import sessionRouter from "@/routes/session.route.js";
 
 const app = express();
 

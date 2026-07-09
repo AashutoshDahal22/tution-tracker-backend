@@ -1,23 +1,14 @@
-import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
-import { generateToken } from "../utils/jwt.js";
-import AppError from "../utils/AppError.js";
+import prisma from "@/lib/prisma.js";
+import AppError from "@/utils/AppError.js";
+import { generateToken } from "@/utils/jwt.js";
+import type { CreateUserDto, LoginUserDto } from "@/types/user.types.js";
+import { sanitizeUser, toUserCreateData } from "@/mappers/user.mapper.js";
 
-interface RegisterInput {
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface LoginInput {
-  email: string;
-  password: string;
-}
-
-const register = async ({ name, email, password }: RegisterInput) => {
+const register = async (dto: CreateUserDto) => {
   const existingUser = await prisma.user.findUnique({
     where: {
-      email,
+      email: dto.email,
     },
   });
 
@@ -25,15 +16,11 @@ const register = async ({ name, email, password }: RegisterInput) => {
     throw new AppError("User Already Exists", 409);
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashedPassword = await bcrypt.hash(dto.password, 10);
 
   //creating the user
   const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
+    data: toUserCreateData(dto, hashedPassword),
   });
 
   //generate jwt token
@@ -42,15 +29,11 @@ const register = async ({ name, email, password }: RegisterInput) => {
   //return user without password
   return {
     token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    },
+    user: sanitizeUser(user),
   };
 };
 
-const login = async ({ email, password }: LoginInput) => {
+const login = async ({ email, password }: LoginUserDto) => {
   // Find user by email
   const user = await prisma.user.findUnique({
     where: {
@@ -75,11 +58,7 @@ const login = async ({ email, password }: LoginInput) => {
   // Return token and user
   return {
     token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-    },
+    user: sanitizeUser(user),
   };
 };
 
@@ -88,20 +67,13 @@ const me = async (userId: string) => {
     where: {
       id: userId,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 
   if (!user) {
     throw new AppError("User not found", 404);
   }
 
-  return user;
+  return sanitizeUser(user);
 };
 
 const authService = {
