@@ -3,6 +3,12 @@ import cors from "cors";
 import authRouter from "@/routes/auth.route.js";
 import studentRouter from "@/routes/student.route.js";
 import sessionRouter from "@/routes/session.route.js";
+import {
+  apiRateLimiter,
+  authRateLimiter,
+} from "@/middleware/rate-limit.middleware.js";
+import { apiReference } from "@scalar/express-api-reference";
+import { openApiSpec } from "./docs/openapi.js";
 
 const app = express();
 
@@ -16,8 +22,9 @@ app.get("/health", (_, res) => {
   });
 });
 
-app.use("/auth", authRouter);
-app.use("/students", studentRouter);
-app.use("/session", sessionRouter);
+app.use("/reference", apiReference({ content: openApiSpec }));
+app.use("/auth", authRateLimiter, authRouter);
+app.use("/students", apiRateLimiter, studentRouter);
+app.use("/session", apiRateLimiter, sessionRouter);
 
 export default app;
