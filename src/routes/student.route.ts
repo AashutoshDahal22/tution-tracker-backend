@@ -1,5 +1,10 @@
 import { Router } from "express";
 import { authenticate } from "@/middleware/auth.middleware.js";
+import { validate } from "@/middleware/validate.middleware.js";
+import {
+  createStudentSchema,
+  updateStudentSchema,
+} from "@/validation/student.validation.js";
 import studentController from "@/controllers/student.controller.js";
 
 const router = Router();
@@ -42,7 +47,7 @@ router.use(authenticate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/", studentController.create);
+router.post("/", validate(createStudentSchema), studentController.create);
 
 /**
  * @openapi
@@ -158,7 +163,7 @@ router.get("/:id", studentController.getById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch("/:id", studentController.update);
+router.patch("/:id", validate(updateStudentSchema), studentController.update);
 
 /**
  * @openapi

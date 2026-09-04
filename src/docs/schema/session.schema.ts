@@ -26,6 +26,13 @@ export const sessionSchemas = {
         nullable: true,
       },
 
+      amount: {
+        type: "number",
+        nullable: true,
+        description:
+          "Fee snapshot: HOURLY rate * duration/60, 0 for cancelled, null for monthly/unpriced.",
+      },
+
       notes: {
         type: "string",
         nullable: true,
@@ -70,6 +77,37 @@ export const sessionSchemas = {
 
       notes: {
         type: "string",
+      },
+    },
+  },
+
+  UpdateSessionRequest: {
+    type: "object",
+    properties: {
+      startTime: {
+        type: "string",
+        format: "date-time",
+      },
+
+      endTime: {
+        type: "string",
+        format: "date-time",
+        nullable: true,
+      },
+
+      duration: {
+        type: "integer",
+        nullable: true,
+      },
+
+      notes: {
+        type: "string",
+        nullable: true,
+      },
+
+      status: {
+        type: "string",
+        enum: ["ONGOING", "COMPLETED", "CANCELLED"],
       },
     },
   },

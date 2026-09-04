@@ -80,6 +80,11 @@ model Session {
   // Duration in minutes
   duration   Int?
 
+  // Snapshot of the fee for this session (currency units).
+  // HOURLY students: rate * duration/60. MONTHLY: null (billed per month).
+  // CANCELLED: 0.
+  amount     Float?
+
   notes      String?
 
   status     SessionStatus @default(ONGOING)

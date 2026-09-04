@@ -14,6 +14,17 @@ export const errorHandler = (
     });
   }
 
+  if (
+    err.name === "TokenExpiredError" ||
+    err.name === "JsonWebTokenError" ||
+    err.name === "NotBeforeError"
+  ) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token.",
+    });
+  }
+
   console.error(err);
 
   return res.status(500).json({
