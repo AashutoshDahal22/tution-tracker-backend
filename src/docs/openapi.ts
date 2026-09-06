@@ -2,6 +2,7 @@ import swaggerJSDoc from "swagger-jsdoc";
 import { authSchemas } from "./schema/auth.schema.js";
 import { studentSchemas } from "./schema/student.schema.js";
 import { sessionSchemas } from "./schema/session.schema.js";
+import { dashboardSchemas } from "./schema/dashboard.schema.js";
 import { commonSchemas } from "./schema/common.schema.js";
 
 const options = {
@@ -33,6 +34,7 @@ const options = {
         ...authSchemas,
         ...sessionSchemas,
         ...studentSchemas,
+        ...dashboardSchemas,
       },
     },
   },

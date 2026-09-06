@@ -1,6 +1,11 @@
 import { Router } from "express";
 import sessionController from "@/controllers/session.controller.js";
 import { authenticate } from "@/middleware/auth.middleware.js";
+import { validate } from "@/middleware/validate.middleware.js";
+import {
+  createSessionSchema,
+  updateSessionSchema,
+} from "@/validation/session.validation.js";
 
 const router = Router();
 
@@ -42,7 +47,7 @@ router.use(authenticate);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/", sessionController.create);
+router.post("/", validate(createSessionSchema), sessionController.create);
 
 /**
  * @openapi
@@ -158,7 +163,7 @@ router.get("/:id", sessionController.getById);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.patch("/:id", sessionController.update);
+router.patch("/:id", validate(updateSessionSchema), sessionController.update);
 
 /**
  * @openapi
